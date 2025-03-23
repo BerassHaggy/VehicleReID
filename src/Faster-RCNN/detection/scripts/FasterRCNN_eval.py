@@ -104,7 +104,7 @@ cfg.INPUT.MAX_SIZE_TRAIN = 640
 cfg.INPUT.MIN_SIZE_TEST = 640
 cfg.INPUT.MAX_SIZE_TEST = 640
 
-wandb.init(project="CUSTOM_VEHICLES", entity="krausm00", config=cfg, name="FRCNN_best_params")
+wandb.init(project="CUSTOM_DATASET", entity="krausm00", config=cfg, name="FRCNN_best_params")
 
 # Inference + evaluation
 os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
