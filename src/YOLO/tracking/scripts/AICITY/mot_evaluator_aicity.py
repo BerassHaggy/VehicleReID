@@ -6,7 +6,7 @@ class MOTEvaluator:
         self.ground_truth_labels = ground_truth_labels
         self.predictions = predictions_filename
         self.results_filename = results_filename
-        self.cars_id = 1  # Adjust this if necessary
+        self.cars_id = 1  # Check whether the carID is correct
 
     def evaluate(self):
         # Read the ground truth and predictions files - AI City Challenge uses 10 labels vs 9 in MOT Challenge
@@ -35,7 +35,7 @@ class MOTEvaluator:
 
         # Filter the car category if necessary
         ground_truth_cars = ground_truth[ground_truth['class_id'] == self.cars_id]
-        predictions_cars = predictions[predictions['class'] == 0]  # Adjust class filter as needed
+        predictions_cars = predictions[predictions['class'] == 0]
         predictions_cars = predictions_cars[predictions_cars['confidence'] >= confidence_threshold]
 
         # Convert the annotations to motmetrics format

@@ -7,7 +7,6 @@ from ultralytics import YOLO
 from deep_sort_realtime.deepsort_tracker import DeepSort
 import datetime
 import matplotlib.pyplot as plt
-import mot_evaluator as mt
 import mot_evaluator_aicity as mtaicity
 import wandb
 import inspect
