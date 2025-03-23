@@ -31,7 +31,9 @@ from detectron2.engine import HookBase, DefaultTrainer
 import torch
 torch.cuda.empty_cache()
 
-annotations_path = "/storage/plzen1/home/krausm00/DP/FastRCNN/datasets/highway_vehicles"
+
+dataset = "custom_vehicles"  # options: highway_vehicles, custom_dataset
+annotations_path = "/storage/plzen1/home/krausm00/DP/FastRCNN/datasets/" + dataset
 
 train_path_images = annotations_path + "/train"
 train_path_annotations = train_path_images + "/annotations.json"
@@ -71,8 +73,8 @@ class_names = []
 classes = coco_annotations["categories"]
 for class_name in classes:
     id = class_name['id']
-    if id == 0: # this is only for highway vehicles as they have additional class at 0
-        continue
+    #if id == 0: # this is only for highway vehicles as they have additional class at 0
+        #continue
     name = class_name['name']
     class_names.append(name)
 
@@ -90,8 +92,8 @@ cfg.SOLVER.MAX_ITER = int(total_iterations)    # 300 iterations seems good enoug
 cfg.SOLVER.MAX_ITER = 200
 cfg.SOLVER.STEPS = []        # do not decay learning rate
 cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128   # The "RoIHead batch size". 128 is faster, and good enough for this toy dataset (default: 512)
-cfg.MODEL.ROI_HEADS.NUM_CLASSES = 12 # (5 for custom dataset, 12 for highway vehicles)
-cfg.MODEL.WEIGHTS = "/storage/plzen1/home/krausm00/DP/FastRCNN/models/highway_vehicles/tuned/best_model.pth" # Tuned models weights for the final evaluation
+cfg.MODEL.ROI_HEADS.NUM_CLASSES = 5 # (5 for custom dataset, 12 for highway vehicles)
+cfg.MODEL.WEIGHTS = "/storage/plzen1/home/krausm00/DP/FastRCNN/models/" + dataset +  "/tuned/best_model.pth" # Tuned models weights for the final evaluation
 
 
 """
@@ -102,7 +104,7 @@ cfg.INPUT.MAX_SIZE_TRAIN = 640
 cfg.INPUT.MIN_SIZE_TEST = 640
 cfg.INPUT.MAX_SIZE_TEST = 640
 
-wandb.init(project="HIGHWAY_VEHICLES", entity="krausm00", config=cfg, name="FRCNN_best_params")
+wandb.init(project="CUSTOM_VEHICLES", entity="krausm00", config=cfg, name="FRCNN_best_params")
 
 # Inference + evaluation
 os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
@@ -111,11 +113,18 @@ cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.01 # corresponds to "yolo conf" value 
 """
     Define the selected hyperparameter values for evaluation
 """
-cfg.SOLVER.BASE_LR = 0.002451521248102337
-cfg.SOLVER.MOMENTUM = 0.8151996454127963
-cfg.SOLVER.WEIGHT_DECAY = 0.00026154166054063316
-cfg.SOLVER.LR_SCHEDULER_NAME = "WarmupCosineLR"
-cfg.SOLVER.OPTIMIZER_NAME = "SGD"
+if dataset.startswith("highway_vehicles"):
+    cfg.SOLVER.BASE_LR = 0.002451521248102337
+    cfg.SOLVER.MOMENTUM = 0.8151996454127963
+    cfg.SOLVER.WEIGHT_DECAY = 0.00026154166054063316
+    cfg.SOLVER.LR_SCHEDULER_NAME = "WarmupCosineLR"
+    cfg.SOLVER.OPTIMIZER_NAME = "SGD"
+elif dataset.startswith("custom_vehicles"):
+    cfg.SOLVER.BASE_LR = 0.0003770487201059842
+    cfg.SOLVER.MOMENTUM = 0.6418884324661226
+    cfg.SOLVER.WEIGHT_DECAY = 0.0017350772415317805
+    cfg.SOLVER.LR_SCHEDULER_NAME = "WarmupCosineLR"
+    cfg.SOLVER.OPTIMIZER_NAME = "SGD"
 
 predictor = DefaultPredictor(cfg)
 evaluator = COCOEvaluator("my_dataset_val", output_dir="./output")
