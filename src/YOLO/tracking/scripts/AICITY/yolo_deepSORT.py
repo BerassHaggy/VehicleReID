@@ -11,7 +11,6 @@ import mot_evaluator_aicity as mtaicity
 import wandb
 import inspect
 
-
 """
     This script performs a vehicles detection and tracking including statstics.
 
@@ -20,13 +19,12 @@ import inspect
 
 class TrafficStatistics():
     def __init__(self) -> None:
-       self.class_trackIDs = dict()
-       self.class_counts = dict()
-       self.class_names = {0: 'car', 1: 'motorbike', 2: 'truck', 3: 'bus', 4: "bicycle"}
-       self.track_duration = dict()
-       self.presence = defaultdict(set)
-       self.trackID_to_class = defaultdict(list)
-
+        self.class_trackIDs = dict()
+        self.class_counts = dict()
+        self.class_names = {0: 'car', 1: 'motorbike', 2: 'truck', 3: 'bus', 4: "bicycle"}
+        self.track_duration = dict()
+        self.presence = defaultdict(set)
+        self.trackID_to_class = defaultdict(list)
 
     def countCarsPerClass(self, trackID, classID):
         class_name = self.class_names[classID]
@@ -62,7 +60,6 @@ class TrafficStatistics():
         # Save the results
         df_counts.to_csv("traffic_statistics.csv", index=False)
 
-
     def occuranceDuration(self, trackID, className, currentMinute, frameNumber,
                           currentTime):
         """
@@ -83,13 +80,13 @@ class TrafficStatistics():
             # Update end_frame and end_time
             self.track_duration[trackID]['end_frame'] = frameNumber
             self.track_duration[trackID]['end_time'] = currentTime
-    
+
     def processOccuranceDuration(self):
         duration_data = list()
         for track_id, times in self.track_duration.items():
             start_time = times['start_time']
             end_time = times['end_time']
-            duration = end_time - start_time  
+            duration = end_time - start_time
 
             # Determine vehicle class (most common class label)
             classes = self.trackID_to_class[track_id]
@@ -113,7 +110,8 @@ class TrafficStatistics():
     Class representing a vehicles detection and tracking.
 """
 
-class deepSort():
+
+class deepSort:
     def __init__(self, model, input_video, output_path, result_output, tracking_ground_truth, mot_results) -> None:
         self.model = model
         self.input_video = input_video
@@ -123,10 +121,9 @@ class deepSort():
         self.mot_results = mot_results
         self.tracking_results = list()
         self.color_map = dict()
-    
 
     def get_random_color(self):
-        return (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        return random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
 
     def track_vehicles(self, visible: bool, mot_challenge: bool, write_video: bool):
         tracker = DeepSort(
@@ -137,16 +134,15 @@ class deepSort():
         )
 
         trafficStatistics = TrafficStatistics()
-    
+
         cap = cv2.VideoCapture(self.input_video)
         frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         fps = cap.get(cv2.CAP_PROP_FPS)
 
         # Video writer
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v') # type: ignore
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # type: ignore
         out = cv2.VideoWriter(self.output_path, fourcc, fps, (frame_width, frame_height))
-
 
         frame_number = 0
         while cap.isOpened():
@@ -158,13 +154,12 @@ class deepSort():
 
             frame_number += 1
 
-
             # Perform detection with YOLOv8
             results = self.model(frame)
-            
+
             # Extract detection results
             detections = results[0].boxes.data.tolist()
-            
+
             # Prepare detections for DeepSort (format: [x1, y1, x2, y2, confidence, class])
             dets = []
             for det in detections:
@@ -175,7 +170,7 @@ class deepSort():
                 width = x2 - x1
                 height = y2 - y1
                 detection_bbox = [x1, y1, width, height]
-                
+
                 # Append the detection in the required format for DeepSort: (bbox, confidence, class)
                 dets.append((detection_bbox, conf, int(cls)))
 
@@ -186,16 +181,15 @@ class deepSort():
             current_time = frame_number / fps
             current_minute = int(current_time // 60)
 
-            
             # Store tracking results
             for track in tracks:
                 if not track.is_confirmed() or track.time_since_update > 1:
                     continue
                 track_id = track.track_id
-                
-                bbox = track.to_ltrb() # get the bounding box values for the visualization
+
+                bbox = track.to_ltrb()  # get the bounding box values for the visualization
                 x1, y1, x2, y2 = bbox
-               
+
                 confidence = track.det_conf
                 class_id = track.det_class
                 visibility = 1
@@ -208,21 +202,22 @@ class deepSort():
                 trafficStatistics.occuranceDuration(track_id, trafficStatistics.class_names[class_id], current_minute,
                                                     frame_number, current_time)
 
-
                 # Draw the results
                 if track_id not in self.color_map:
                     self.color_map[track_id] = self.get_random_color()
-                color = self.color_map[track_id] # Get the assigned color
+                color = self.color_map[track_id]  #  Get the assigned color
 
                 cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
                 cv2.putText(frame, f'ID: {track_id}', (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-                cv2.putText(frame, f'Class: {self.model.names[class_id]}', (int(x1), int(y1) - 25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                cv2.putText(frame, f'Class: {self.model.names[class_id]}', (int(x1), int(y1) - 25),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
                 try:
-                    cv2.putText(frame, f'Conf: {confidence:.2f}', (int(x1), int(y1) - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                    cv2.putText(frame, f'Conf: {confidence:.2f}', (int(x1), int(y1) - 40), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, color, 2)
                     print("Frame number: " + frame_number + " is being processed.")
                 except:
                     pass
-                    
+
                 # Decide whether to display the annotated frame
                 if visible:
                     # Display the annotated frame
@@ -231,23 +226,25 @@ class deepSort():
                     # Break the loop if 'q' is pressed
                     if cv2.waitKey(1) & 0xFF == ord("q"):
                         break
-                
+
                 # Transfor the important values for the MOT metrics
                 w = x2 - x1
                 h = y2 - y1
                 if confidence == None:
                     confidence = 0
-                self.tracking_results.append([frame_number, track_id, int(x1), int(y1), int(w), int(h), confidence, class_id, visibility])
+                self.tracking_results.append(
+                    [frame_number, track_id, int(x1), int(y1), int(w), int(h), confidence, class_id, visibility])
 
-            # Write the frame to the output video
+            #  Write the frame to the output video
             if write_video:
                 out.write(frame)
-                
+
         cap.release()
-        
+
         if mot_challenge:
             # Convert tracking results to DataFrame in order to evalaute the MOT metrics
-            columns = ['frame', 'object_id', 'bbox_left', 'bbox_top', 'bbox_width', 'bbox_height', 'confidence', 'class', 'visibility']
+            columns = ['frame', 'object_id', 'bbox_left', 'bbox_top', 'bbox_width', 'bbox_height', 'confidence',
+                       'class', 'visibility']
             tracking_df = pd.DataFrame(self.tracking_results, columns=columns)
             # Save the results to a .txt file
             tracking_df.to_csv(self.result_output, index=False, header=False)
@@ -257,58 +254,66 @@ class deepSort():
         # trafficStatistics.processOccuranceDuration()
 
         # After processing the video, calculate the MOTA metric
-        motaEvaluator = mtaicity.MOTEvaluator(ground_truth_labels=self.tracking_ground_truth, predictions_filename=self.result_output, results_filename=self.mot_results)
+        motaEvaluator = mtaicity.MOTEvaluator(ground_truth_labels=self.tracking_ground_truth,
+                                              predictions_filename=self.result_output,
+                                              results_filename=self.mot_results)
         results, acc = motaEvaluator.evaluate()
 
+        # Access the computed metrics
         mota_value = results.mota["summary"]
         motp_value = results.motp["summary"]
         idf1 = results.idf1["summary"]
-        fp = results.num_false_positives["summary"]
-        fn = results.num_misses["summary"]
-        num_gt = results.num_objects["summary"]
-        tp = results.num_matches["summary"]
+        fp = results.num_false_positives["summary"]  # False positives
+        fn = results.num_misses["summary"]  # False negatives
+        num_gt = results.num_objects["summary"]  # Number of unique objects
+        precision = results.precision["precision"]
+        recall = results.recall["summary"]
+        num_detections = results.num_detections["summary"]  # Number of detected objects
+        num_matches = results.num_matches["summary"]  # Number of matches
 
-        # MODA MODP
-        MODA = 1 - (fp + fn) / num_gt
-        matches = acc.mot_events.query('Type == "MATCH"')
-        MODP = 1 - matches['D'].mean()
+        # MODA, MODP
+        # MODA = 1 - (fp + fn) / num_gt
+        # MODP = num_matches / (num_detections - fp)
 
-        # Precision, Recall, F1 score
-        if tp + fp > 0:
-            precision = tp / (tp + fp)
-        else:
-            precision = 0.0
+        # F1-score (by definition) for comparison with IDF1
+        f1_score = 2 * (precision * recall) / (precision + recall)
 
-        if tp + fn > 0:
-            recall = tp / (tp + fn)
-        else:
-            recall = 0.0
+        # AP
+        recall_levels = np.linspace(0, 1, 11)  # (0:0:1:1) based on MOT reference
+        interpolated_precision = np.zeros_like(recall_levels)
 
-        if precision + recall > 0:
-            f1_score = 2 * (precision * recall) / (precision + recall)
-        else:
-            f1_score = 0.0
+        # Sorted values
+        sorted_indices = np.argsort(recall)
+        recall = recall[sorted_indices]
+        precision = precision[sorted_indices]
+
+        # Interpolate precision for each recall level
+        for i, r in enumerate(recall_levels):
+            interpolated_precision[i] = np.max(precision[recall >= r]) if np.any(recall >= r) else 0
+        AP = np.mean(interpolated_precision)  # Final AP
 
         print("--------")
-        print("MODA: " + str(MODA))
-        print("MODP: " + str(MODP))
+        # print("MODA: " + str(MODA))
+        # print("MODP: " + str(MODP))
         print("F1-score: " + str(f1_score))
+        print("IDF1-score: " + str(idf1))
+        print("AP: " + str(AP))
         print("--------")
 
-        
         # Log the metric to wandb
         wandb.log({"MOTA": mota_value,
                    "MOTP": motp_value,
                    "IDF1": idf1,
-                   "MODA": MODA,
-                   "MODP": MODP,
-                   "F1-score": f1_score})
-        
-    
+                   "Precision": precision,
+                   "Recall": recall,
+                   "F1-score": f1_score,
+                   "FP": fp,
+                   "FN": fn,
+                   "AP": AP})
 
-# Main logig
+
+# Main logic
 def main():
-
     """
         Local configuration
     """
@@ -354,9 +359,7 @@ def main():
     """
         Metacentrum configuration - AICITY Challenge
     """
-
-    
-    wandb.init(project="TRACKING_deepSORT", entity="krausm00") 
+    wandb.init(project="TRACKING_deepSORT", entity="krausm00")
     # Load the pretrained YOLOv8 model
     model = YOLO("../../data/custom_vehicles.pt")
     # Define the input video
@@ -370,11 +373,10 @@ def main():
     # Tracking ground truths
     tracking_ground_truth = "../results/gt.txt"
 
-    deep_sort = deepSort(model, input_video=input_video, output_path=output_path_deepSort, result_output=results_output_filename, 
-                        tracking_ground_truth=tracking_ground_truth, mot_results=mot_results)
+    deep_sort = deepSort(model, input_video=input_video, output_path=output_path_deepSort,
+                         result_output=results_output_filename,
+                         tracking_ground_truth=tracking_ground_truth, mot_results=mot_results)
     deep_sort.track_vehicles(visible=False, mot_challenge=True, write_video=True)
-    
-    
 
 
 # Run the script

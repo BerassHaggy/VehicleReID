@@ -1,6 +1,7 @@
 import motmetrics as mm
 import pandas as pd
 
+
 class MOTEvaluator:
     def __init__(self, ground_truth_labels, predictions_filename, results_filename):
         self.ground_truth_labels = ground_truth_labels
@@ -31,7 +32,6 @@ class MOTEvaluator:
 
         # Set the confidence threshold
         confidence_threshold = 0.8
-
 
         # Filter the car category if necessary
         ground_truth_cars = ground_truth[ground_truth['class_id'] == self.cars_id]
@@ -76,8 +76,8 @@ class MOTEvaluator:
         # Compute metrics
         mh = mm.metrics.create()
         metrics = [
-            'idf1', 'mota', 'motp',
-            'num_false_positives', 'num_misses',
+            'idf1', 'mota', 'motp', 'precision', 'recall',
+            'num_false_positives', 'num_misses', 'num_detections'
             'num_objects', 'num_matches'
         ]
         summary = mh.compute(acc, metrics=metrics, name='summary')
