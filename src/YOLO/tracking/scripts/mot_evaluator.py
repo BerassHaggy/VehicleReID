@@ -18,6 +18,7 @@ class MOTEvaluator:
         ground_truth = None
         confidence_threshold = 0.0
         if datasetType.startswith("AI CITY"):
+            # Ground truth
             ground_truth = pd.read_csv(
                 self.ground_truth_labels,
                 header=None,
@@ -31,21 +32,32 @@ class MOTEvaluator:
             confidence_threshold = 0.6
 
         elif datasetType.startswith("MOT"):
-            predictions = pd.read_csv(
-                self.predictions,
+            # Ground truth
+            ground_truth = pd.read_csv(
+                self.ground_truth_labels,
                 header=None,
                 names=[
                     'frame', 'object_id', 'bbox_left', 'bbox_top',
-                    'bbox_width', 'bbox_height', 'confidence', 'class',
+                    'bbox_width', 'bbox_height', 'confidence', 'class_id',
                     'visibility'
                 ]
             )
             # Set the confidence threshold
             confidence_threshold = 0.8
 
+        # Predictions
+        predictions = pd.read_csv(
+            self.predictions,
+            header=None,
+            names=[
+                'frame', 'object_id', 'bbox_left', 'bbox_top',
+                'bbox_width', 'bbox_height', 'confidence', 'class_id',
+                'visibility'
+            ]
+        )
         # Filter the car category if necessary
         ground_truth_cars = ground_truth[ground_truth['class_id'] == self.cars_id]
-        predictions_cars = predictions[predictions['class'] == 0]
+        predictions_cars = predictions[predictions['class_id'] == 0]
         predictions_cars = predictions_cars[predictions_cars['confidence'] >= confidence_threshold]
 
         # Convert the annotations to motmetrics format
