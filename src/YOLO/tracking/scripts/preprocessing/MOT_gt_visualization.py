@@ -12,7 +12,7 @@ def showAnnotations(gt_file, video_path, output_video_path):
     gt_df = pd.read_csv(gt_file, header=None,
                         names=['frame', 'object_id', 'bbox_left', 'bbox_top', 'bbox_width', 'bbox_height', 'confidence',
                                'class', 'visibility'])
-    vehicle_gt_df = gt_df[gt_df["class"] == 3]
+    vehicle_gt_df = gt_df[gt_df["class"] == 3]  # 3 for MOT Challenge || 1 for AI CITY Challenge
     # Open video file
     cap = cv2.VideoCapture(video_path)
     fps = int(cap.get(cv2.CAP_PROP_FPS))
@@ -58,6 +58,16 @@ def showAnnotations(gt_file, video_path, output_video_path):
 
 
 def main():
+    """
+    MOT Challenge dataset
+    """
+    gt_file = "/Users/martinkraus/Downloads/MOT17Det/train/MOT17-13/gt/gt.txt"
+    video_path = "/Users/martinkraus/Library/CloudStorage/OneDrive-ZápadočeskáuniverzitavPlzni/Dokumenty/škola/DP/YOLO/scripts/MOT_video/output_video.mp4"
+    output_video_path = "/Users/martinkraus/Downloads/test.mp4"
+
+    """
+    AI CITY Challenge dataset
+    """
     gt_file = "/Users/martinkraus/Downloads/MOT17Det/train/MOT17-13/gt/gt.txt"
     video_path = "/Users/martinkraus/Library/CloudStorage/OneDrive-ZápadočeskáuniverzitavPlzni/Dokumenty/škola/DP/YOLO/scripts/MOT_video/output_video.mp4"
     output_video_path = "/Users/martinkraus/Downloads/test.mp4"
