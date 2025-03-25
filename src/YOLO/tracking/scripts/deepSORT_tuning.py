@@ -21,7 +21,8 @@ from TrafficStatistics import TrafficStatistics
 
 
 class deepSort:
-    def __init__(self, model, input_video, output_path, result_output, tracking_ground_truth, mot_results) -> None:
+    def __init__(self, model, input_video, output_path, result_output, tracking_ground_truth, mot_results,
+                 datasetType: str) -> None:
         self.model = model
         self.input_video = input_video
         self.output_path = output_path
@@ -30,6 +31,7 @@ class deepSort:
         self.mot_results = mot_results
         self.tracking_results = list()
         self.color_map = dict()
+        self.datasetType = datasetType
 
     def get_random_color(self):
         return random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
@@ -51,7 +53,8 @@ class deepSort:
 
         # Video writer
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # type: ignore
-        # out = cv2.VideoWriter(self.output_path, fourcc, fps, (frame_width, frame_height))
+        if write_video:
+            out = cv2.VideoWriter(self.output_path, fourcc, fps, (frame_width, frame_height))
 
         frame_number = 0
         while cap.isOpened():
@@ -114,7 +117,7 @@ class deepSort:
                 # Draw the results
                 if track_id not in self.color_map:
                     self.color_map[track_id] = self.get_random_color()
-                color = self.color_map[track_id]  #  Get the assigned color
+                color = self.color_map[track_id]  # Get the assigned color
 
                 cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
                 cv2.putText(frame, f'ID: {track_id}', (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
@@ -152,7 +155,7 @@ class deepSort:
         cap.release()
 
         if mot_challenge:
-            # Convert tracking results to DataFrame in order to evalaute the MOT metrics
+            # Convert tracking results to DataFrame in order to evaluate the MOT metrics
             columns = ['frame', 'object_id', 'bbox_left', 'bbox_top', 'bbox_width', 'bbox_height', 'confidence',
                        'class', 'visibility']
             tracking_df = pd.DataFrame(self.tracking_results, columns=columns)
@@ -167,7 +170,7 @@ class deepSort:
         motaEvaluator = mt.MOTEvaluator(ground_truth_labels=self.tracking_ground_truth,
                                         predictions_filename=self.result_output,
                                         results_filename=self.result_output)
-        results, acc = motaEvaluator.evaluate()
+        results, acc = motaEvaluator.evaluate(datasetType=self.datasetType)
         # Access the computed metrics
         mota_value = results.mota["summary"]
         motp_value = results.motp["summary"]
@@ -175,7 +178,7 @@ class deepSort:
         fp = results.num_false_positives["summary"]  # False positives
         fn = results.num_misses["summary"]  # False negatives
         num_gt = results.num_objects["summary"]  # Number of unique objects
-        precision = results.precision["precision"]
+        precision = results.precision["summary"]
         recall = results.recall["summary"]
         num_detections = results.num_detections["summary"]  # Number of detected objects
         num_matches = results.num_matches["summary"]  # Number of matches
@@ -246,7 +249,6 @@ def train():
             Metacentrum - MOT Challenge
         """
 
-        """
         # Load the pretrained YOLOv8 model
         model = YOLO("../data/custom_vehicles.pt")
         # Define the input video
@@ -257,35 +259,40 @@ def train():
         results_output_filename = "../results/tracking_results.txt"
         # Define a path for MOT results
         mot_results = "../results/mot_results.txt"
-
         # Tracking ground truths
         tracking_ground_truth = "../results/gt.txt"
-        deep_sort = deepSort(model, input_video=input_video, output_path=output_path_deepSort, result_output=results_output_filename, 
-                            tracking_ground_truth=tracking_ground_truth, mot_results=mot_results)
+        datasetType = "MOT"
+
+        deep_sort = deepSort(model, input_video=input_video, output_path=output_path_deepSort,
+                             result_output=results_output_filename,
+                             tracking_ground_truth=tracking_ground_truth, mot_results=mot_results,
+                             datasetType=datasetType)
         deep_sort.track_vehicles(visible=False, mot_challenge=True, write_video=False)
-        """
 
         """
             Metacentrum - AICITY Challenge
         """
-
+        """
         # Load the pretrained YOLOv8 model
         model = YOLO("../../data/custom_vehicles.pt")
         # Define the input video
-        input_video = "../data/vdo.avi"
+        input_video = "../AICITY/data/vdo.avi"
         # Define the path for the resulting video with tracking
-        output_path_deepSort = "../video/final_trackings.mp4"
+        output_path_deepSort = "../AICITY/video/final_trackings.mp4"
         # Define the tracking results path
-        results_output_filename = "../results/tracking_results.txt"
+        results_output_filename = "../AICITY/results/tracking_results.txt"
         # Define a path for MOT results
-        mot_results = "../results/aicity_results.txt"
+        mot_results = "../AICITY/results/aicity_results.txt"
         # Tracking ground truths
-        tracking_ground_truth = "../results/gt.txt"
+        tracking_ground_truth = "../AICITY/ground_truths/gt_short.txt"
+        datasetType = "AI CITY"
 
         deep_sort = deepSort(model, input_video=input_video, output_path=output_path_deepSort,
                              result_output=results_output_filename,
-                             tracking_ground_truth=tracking_ground_truth, mot_results=mot_results)
+                             tracking_ground_truth=tracking_ground_truth, mot_results=mot_results,
+                             datasetType=datasetType)
         deep_sort.track_vehicles(visible=False, mot_challenge=True, write_video=False)
+        """
 
 
 # Initialize the sweep

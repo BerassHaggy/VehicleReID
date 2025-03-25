@@ -81,8 +81,8 @@ def main():
         output_video_path = "/Users/martinkraus/Downloads/test.mp4"
 
     elif datasetType.startswith("AI CITY"):
-        gt_file = "/Users/martinkraus/Downloads/AICity22_Track1_MTMC_Tracking/train/S01/c001/gt/gt.txt"
-        video_path = "/Users/martinkraus/Downloads/AICity22_Track1_MTMC_Tracking/train/S01/c001/vdo.avi"
+        gt_file = "/Users/martinkraus/Downloads/AICity22_Track1_MTMC_Tracking/train/S01/c001/gt/gt_short.txt"
+        video_path = "/Users/martinkraus/Library/CloudStorage/OneDrive-ZápadočeskáuniverzitavPlzni/Dokumenty/škola/DP/YOLO/scripts/AI CITY video/AI_CITY_video.mp4"
         output_video_path = "/Users/martinkraus/Downloads/test.mp4"
 
     showAnnotations(gt_file, video_path, output_video_path, datasetType)

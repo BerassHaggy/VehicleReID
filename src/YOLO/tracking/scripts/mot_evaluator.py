@@ -99,7 +99,7 @@ class MOTEvaluator:
         mh = mm.metrics.create()
         metrics = [
             'idf1', 'mota', 'motp', 'precision', 'recall',
-            'num_false_positives', 'num_misses', 'num_detections'
+            'num_false_positives', 'num_misses', 'num_detections',
             'num_objects', 'num_matches'
         ]
         summary = mh.compute(acc, metrics=metrics, name='summary')
