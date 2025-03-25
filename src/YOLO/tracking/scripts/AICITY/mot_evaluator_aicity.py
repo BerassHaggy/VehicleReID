@@ -7,7 +7,7 @@ class MOTEvaluator:
         self.ground_truth_labels = ground_truth_labels
         self.predictions = predictions_filename
         self.results_filename = results_filename
-        self.cars_id = 1  # Check whether the carID is correct
+        self.cars_id = 3  # Check whether the carID is correct (MOT Challenge - classID for vehicles == 3)
 
     def evaluate(self):
         # Read the ground truth and predictions files - AI City Challenge uses 10 labels vs 9 in MOT Challenge

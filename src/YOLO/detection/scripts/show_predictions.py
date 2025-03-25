@@ -3,7 +3,6 @@ import cv2
 import matplotlib.pyplot as plt
 
 
-
 def show_yolo_boxes(image_path):
     image = cv2.imread(image_path)
     boxes = load_ground_truth_boxes(image_path)

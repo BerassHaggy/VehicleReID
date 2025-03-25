@@ -7,6 +7,8 @@ This class computes and stores from a video the following metrics:
     - number of instances per class
     - duration of each VehicleID (including startTime and endTime)
 """
+
+
 class TrafficStatistics:
     def __init__(self) -> None:
         self.class_trackIDs = dict()
