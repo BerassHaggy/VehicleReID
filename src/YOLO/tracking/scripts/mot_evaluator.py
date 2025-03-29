@@ -7,12 +7,14 @@ This script represents a computation of MOT metrics from a tracking task.
 
 
 class MOTEvaluator:
+    ROI = (0, 1080, 1920, 320)  # Region of Interest
+
     def __init__(self, ground_truth_labels, predictions_filename, results_filename):
         self.ground_truth_labels = ground_truth_labels
         self.predictions = predictions_filename
         self.results_filename = results_filename
         self.cars_id = 0  # Check whether the carID is correct (MOT Challenge - classID for vehicles == 3)
-        self.ROI = (0, 1080, 1920, 320)  # Region of Interest
+        self.ROI = MOTEvaluator.ROI  # Region of Interest
 
     # Check whether the current bbox is within the defined ROI
     def isInsideROI(self, bbox):

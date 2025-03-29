@@ -16,7 +16,7 @@ from TrafficStatistics import TrafficStatistics
 
 class deepSort:
     def __init__(self, model, input_video, output_path, result_output, tracking_ground_truth, mot_results,
-                 datasetType: str, includeROI: bool) -> None:
+                 datasetType: str, includeROI: bool, visualizeROI: bool) -> None:
         self.model = model
         self.input_video = input_video
         self.output_path = output_path
@@ -27,6 +27,8 @@ class deepSort:
         self.color_map = dict()
         self.datasetType = datasetType
         self.includeROI = includeROI
+        self.visualizeROI = visualizeROI
+        self.ROI = mt.MOTEvaluator.ROI
 
     def get_random_color(self):
         return random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
@@ -120,21 +122,42 @@ class deepSort:
 
                 # Draw results only for cars and trucks
                 if class_id == 0 or class_id == 2:
-                    # Draw the results
-                    if track_id not in self.color_map:
-                        self.color_map[track_id] = self.get_random_color()
-                    color = self.color_map[track_id]  # Get the assigned color
+                    # Check for ROI visualization
+                    if self.visualizeROI:
+                        x_min, y_max, x_max, y_min = self.ROI
+                        if x1 >= x_min and x2 <= x_max and y1 >= y_min and y2 <= y_max:
+                            if track_id not in self.color_map:
+                                self.color_map[track_id] = self.get_random_color()
+                            color = self.color_map[track_id]  # Get the assigned color
 
-                    cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
-                    cv2.putText(frame, f'ID: {track_id}', (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-                    cv2.putText(frame, f'Class: {self.model.names[class_id]}', (int(x1), int(y1) - 25),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-                    try:
-                        cv2.putText(frame, f'Conf: {confidence:.2f}', (int(x1), int(y1) - 40), cv2.FONT_HERSHEY_SIMPLEX,
-                                    0.5, color, 2)
-                        print("Frame number: " + frame_number + " is being processed.")
-                    except:
-                        pass
+                            cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
+                            cv2.putText(frame, f'ID: {track_id}', (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX,
+                                        0.5, color, 2)
+                            cv2.putText(frame, f'Class: {self.model.names[class_id]}', (int(x1), int(y1) - 25),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                            try:
+                                cv2.putText(frame, f'Conf: {confidence:.2f}', (int(x1), int(y1) - 40),
+                                            cv2.FONT_HERSHEY_SIMPLEX,
+                                            0.5, color, 2)
+                                print("Frame number: " + frame_number + " is being processed.")
+                            except:
+                                pass
+                    else:
+                        # Draw the results
+                        if track_id not in self.color_map:
+                            self.color_map[track_id] = self.get_random_color()
+                        color = self.color_map[track_id]  # Get the assigned color
+
+                        cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
+                        cv2.putText(frame, f'ID: {track_id}', (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                        cv2.putText(frame, f'Class: {self.model.names[class_id]}', (int(x1), int(y1) - 25),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                        try:
+                            cv2.putText(frame, f'Conf: {confidence:.2f}', (int(x1), int(y1) - 40), cv2.FONT_HERSHEY_SIMPLEX,
+                                        0.5, color, 2)
+                            print("Frame number: " + frame_number + " is being processed.")
+                        except:
+                            pass
 
                 # Decide whether to display the annotated frame
                 if visible:
@@ -257,7 +280,7 @@ def main():
     deep_sort = deepSort(model, input_video=input_video, output_path=output_path_deepSort,
                          result_output=results_output_filename,
                          tracking_ground_truth=tracking_ground_truth, mot_results=mot_results, datasetType=datasetType,
-                         includeROI=False)
+                         includeROI=False, visualizeROI=False)
     deep_sort.track_vehicles(visible=False, mot_challenge=True, write_video=True, datasetType=datasetType)
     """
 
@@ -283,7 +306,7 @@ def main():
     deep_sort = deepSort(model, input_video=input_video, output_path=output_path_deepSort,
                          result_output=results_output_filename,
                          tracking_ground_truth=tracking_ground_truth, mot_results=mot_results, datasetType=datasetType,
-                         includeROI=True)
+                         includeROI=True, visualizeROI=True)
     deep_sort.track_vehicles(visible=False, mot_challenge=True, write_video=True, datasetType=datasetType)
 
 
