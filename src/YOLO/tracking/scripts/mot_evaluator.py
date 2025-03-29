@@ -11,9 +11,16 @@ class MOTEvaluator:
         self.ground_truth_labels = ground_truth_labels
         self.predictions = predictions_filename
         self.results_filename = results_filename
-        self.cars_id = 1  # Check whether the carID is correct (MOT Challenge - classID for vehicles == 3)
+        self.cars_id = 0  # Check whether the carID is correct (MOT Challenge - classID for vehicles == 3)
+        self.ROI = (0, 1080, 1920, 320)  # Region of Interest
 
-    def evaluate(self, datasetType: str):
+    # Check whether the current bbox is within the defined ROI
+    def isInsideROI(self, bbox):
+        x1, y1, x2, y2 = bbox
+        x_min, y_max, x_max, y_min = self.ROI
+        return x1 >= x_min and x2 <= x_max and y1 >= y_min and y2 <= y_max
+
+    def evaluate(self, datasetType: str, includeROI: bool):
         # Read the ground truth and predictions files - AI City Challenge uses 10 labels vs 9 in MOT Challenge
         ground_truth = None
         confidence_threshold = 0.0
@@ -30,6 +37,7 @@ class MOTEvaluator:
             )
             # Set the confidence threshold
             confidence_threshold = 0.6
+            self.cars_id = 1
 
         elif datasetType.startswith("MOT"):
             # Ground truth
@@ -44,6 +52,7 @@ class MOTEvaluator:
             )
             # Set the confidence threshold
             confidence_threshold = 0.8
+            self.cars_id = 3
 
         # Predictions
         predictions = pd.read_csv(
@@ -55,9 +64,9 @@ class MOTEvaluator:
                 'visibility'
             ]
         )
-        # Filter the car category if necessary
+        # Filter the car + truck category if necessary
         ground_truth_cars = ground_truth[ground_truth['class_id'] == self.cars_id]
-        predictions_cars = predictions[predictions['class_id'] == 0]
+        predictions_cars = predictions[(predictions['class_id'] == 0) | (predictions['class_id'] == 2)]
         predictions_cars = predictions_cars[predictions_cars['confidence'] >= confidence_threshold]
 
         # Convert the annotations to motmetrics format
@@ -84,16 +93,38 @@ class MOTEvaluator:
             # Convert bounding boxes to [x1, y1, x2, y2] format
             gt_bboxes_xyxy = [self.bbox_to_xyxy(bbox) for bbox in gt_bboxes]
             pred_bboxes_xyxy = [self.bbox_to_xyxy(bbox) for bbox in pred_bboxes]
+            distances = None
 
-            # Compute IoU distance matrix
-            distances = mm.distances.iou_matrix(gt_bboxes_xyxy, pred_bboxes_xyxy, max_iou=0.5)
+            # Whether to take the ROI in account or not
+            if includeROI:
+                gt_filtered = [(id_, bbox) for id_, bbox in zip(gt_ids, gt_bboxes_xyxy) if self.isInsideROI(bbox)]
+                pred_filtered = [(id_, bbox) for id_, bbox in zip(pred_ids, pred_bboxes_xyxy) if
+                                 self.isInsideROI(bbox)]
 
-            # Update the accumulator with the frame results
-            acc.update(
-                gt_ids,               # Ground truth IDs
-                pred_ids,             # Prediction IDs
-                distances             # Distance matrix
-            )
+                # Unpack filtered results
+                gt_ids_filtered, gt_bboxes_filtered = zip(*gt_filtered) if gt_filtered else ([], [])
+                pred_ids_filtered, pred_bboxes_filtered = zip(*pred_filtered) if pred_filtered else ([], [])
+
+                # Check for empty lists
+                if not gt_ids_filtered and not pred_ids_filtered:
+                    continue
+
+                distances = mm.distances.iou_matrix(gt_bboxes_filtered, pred_bboxes_filtered, max_iou=0.5)
+                # Update the accumulator with the frame results
+                acc.update(
+                    gt_ids_filtered,  # Ground truth IDs
+                    pred_ids_filtered,  # Prediction IDs
+                    distances  # Distance matrix
+                )
+
+            else:
+                distances = mm.distances.iou_matrix(gt_bboxes_xyxy, pred_bboxes_xyxy, max_iou=0.5)
+                # Update the accumulator with the frame results
+                acc.update(
+                    gt_ids,               # Ground truth IDs
+                    pred_ids,             # Prediction IDs
+                    distances             # Distance matrix
+                )
 
         # Compute metrics
         mh = mm.metrics.create()

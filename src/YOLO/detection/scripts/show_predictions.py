@@ -58,6 +58,7 @@ def show_yolo_predictions(model, image):
     plt.imshow(image_rgb)
     plt.show()
 
+
 image_path = "data/custom_dataset/640.png"
 model = YOLO("/Users/martinkraus/Downloads/custom_vehicles.pt")
 show_yolo_boxes(image_path=image_path)

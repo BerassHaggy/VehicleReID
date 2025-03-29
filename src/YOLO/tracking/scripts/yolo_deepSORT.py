@@ -16,7 +16,7 @@ from TrafficStatistics import TrafficStatistics
 
 class deepSort:
     def __init__(self, model, input_video, output_path, result_output, tracking_ground_truth, mot_results,
-                 datasetType: str) -> None:
+                 datasetType: str, includeROI: bool) -> None:
         self.model = model
         self.input_video = input_video
         self.output_path = output_path
@@ -26,17 +26,27 @@ class deepSort:
         self.tracking_results = list()
         self.color_map = dict()
         self.datasetType = datasetType
+        self.includeROI = includeROI
 
     def get_random_color(self):
         return random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
 
-    def track_vehicles(self, visible: bool, mot_challenge: bool, write_video: bool):
-        tracker = DeepSort(
-            max_age=28,
-            n_init=2,
-            nn_budget=153,
-            max_cosine_distance=0.3195
-        )
+    def track_vehicles(self, visible: bool, mot_challenge: bool, write_video: bool, datasetType: str):
+        # Hyperparameters based on a wandb sweep
+        if datasetType.startswith("AI CITY"):
+            tracker = DeepSort(
+                max_age=32,
+                n_init=5,
+                nn_budget=159,
+                max_cosine_distance=0.39552185947348695
+            )
+        elif datasetType.startswith("MOT"):
+            tracker = DeepSort(
+                max_age=38,
+                n_init=1,
+                nn_budget=112,
+                max_cosine_distance=0.1883443806825028
+            )
 
         trafficStatistics = TrafficStatistics()
 
@@ -47,7 +57,8 @@ class deepSort:
 
         # Video writer
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # type: ignore
-        out = cv2.VideoWriter(self.output_path, fourcc, fps, (frame_width, frame_height))
+        if write_video:
+            out = cv2.VideoWriter(self.output_path, fourcc, fps, (frame_width, frame_height))
 
         frame_number = 0
         while cap.isOpened():
@@ -107,21 +118,23 @@ class deepSort:
                 trafficStatistics.occuranceDuration(track_id, trafficStatistics.class_names[class_id], current_minute,
                                                     frame_number, current_time)
 
-                # Draw the results
-                if track_id not in self.color_map:
-                    self.color_map[track_id] = self.get_random_color()
-                color = self.color_map[track_id]  # Get the assigned color
+                # Draw results only for cars and trucks
+                if class_id == 0 or class_id == 2:
+                    # Draw the results
+                    if track_id not in self.color_map:
+                        self.color_map[track_id] = self.get_random_color()
+                    color = self.color_map[track_id]  # Get the assigned color
 
-                cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
-                cv2.putText(frame, f'ID: {track_id}', (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-                cv2.putText(frame, f'Class: {self.model.names[class_id]}', (int(x1), int(y1) - 25),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-                try:
-                    cv2.putText(frame, f'Conf: {confidence:.2f}', (int(x1), int(y1) - 40), cv2.FONT_HERSHEY_SIMPLEX,
-                                0.5, color, 2)
-                    print("Frame number: " + frame_number + " is being processed.")
-                except:
-                    pass
+                    cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
+                    cv2.putText(frame, f'ID: {track_id}', (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                    cv2.putText(frame, f'Class: {self.model.names[class_id]}', (int(x1), int(y1) - 25),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                    try:
+                        cv2.putText(frame, f'Conf: {confidence:.2f}', (int(x1), int(y1) - 40), cv2.FONT_HERSHEY_SIMPLEX,
+                                    0.5, color, 2)
+                        print("Frame number: " + frame_number + " is being processed.")
+                    except:
+                        pass
 
                 # Decide whether to display the annotated frame
                 if visible:
@@ -162,7 +175,7 @@ class deepSort:
         motaEvaluator = mt.MOTEvaluator(ground_truth_labels=self.tracking_ground_truth,
                                         predictions_filename=self.result_output,
                                         results_filename=self.mot_results)
-        results, acc = motaEvaluator.evaluate(datasetType=self.datasetType)
+        results, acc = motaEvaluator.evaluate(datasetType=self.datasetType, includeROI=self.includeROI)
 
         # Access the computed metrics
         mota_value = results.mota["summary"]
@@ -177,14 +190,14 @@ class deepSort:
         num_matches = results.num_matches["summary"]  # Number of matches
 
         # MODA, MODP
-        # MODA = 1 - (fp + fn) / num_gt
+        MODA = 1 - (fp + fn) / num_gt
         # MODP = num_matches / (num_detections - fp)
 
         # F1-score (by definition) for comparison with IDF1
         f1_score = 2 * (precision * recall) / (precision + recall)
 
         print("--------")
-        # print("MODA: " + str(MODA))
+        print("MODA: " + str(MODA))
         # print("MODP: " + str(MODP))
         print("F1-score: " + str(f1_score))
         print("IDF1-score: " + str(idf1))
@@ -193,6 +206,7 @@ class deepSort:
         # Log the metric to wandb
         wandb.log({"MOTA": mota_value,
                    "MOTP": motp_value,
+                   "MODA": MODA,
                    "IDF1": idf1,
                    "Precision": precision,
                    "Recall": recall,
@@ -208,24 +222,24 @@ def main():
     """
     """
     # Load the pretrained YOLOv8 model
-    model = YOLO("/Users/martinkraus/Downloads/custom_vehicles.pt")
+    model = YOLO("/Users/martinkraus/Downloads/YOLO_tuned_models/custom_vehicles.pt")
     # Define the input video
-    input_video = "moving_vehicles2.mp4"
+    input_video = "/Users/martinkraus/Downloads/out.mp4"
     # Define the path for the resulting video with tracking
     output_path_deepSort = "/Users/martinkraus/Downloads/deepSORT_vehicles.mp4"
     # Define the tracking results path
     results_output_filename = "/Users/martinkraus/Library/CloudStorage/OneDrive-ZápadočeskáuniverzitavPlzni/Dokumenty/škola/DP/YOLO/scripts/MOT_challenge/deepSORT.txt"
     # Define tracking ground truth
-    tracking_ground_truth = "/Users/martinkraus/Downloads/MOT17Det/train/MOT17-13/gt/gt_short_edited.txt"
+    tracking_ground_truth = "/Users/martinkraus/Downloads/AICity22_Track1_MTMC_Tracking/train/S01/c001/gt/gt_short.txt"
     # Define path for MOT results
     mot_results = "mot_results.txt"
-
+    datasetType = "AI CITY"
     """
     """
         Metacentrum configuration - MOT Challenge
     """
-
-    wandb.init(project="TRACKING_deepSORT", entity="krausm00") 
+    """
+    wandb.init(project="TRACKING_deepSORT", entity="krausm00")
     # Load the pretrained YOLOv8 model
     model = YOLO("../data/custom_vehicles.pt")
     # Define the input video
@@ -240,24 +254,26 @@ def main():
     tracking_ground_truth = "../ground_truths/gt.txt"
     datasetType = "MOT"
 
-    deep_sort = deepSort(model, input_video=input_video, output_path=output_path_deepSort, result_output=results_output_filename, 
-                        tracking_ground_truth=tracking_ground_truth, mot_results=mot_results, datasetType=datasetType)
-    deep_sort.track_vehicles(visible=False, mot_challenge=True, write_video=False)
-
+    deep_sort = deepSort(model, input_video=input_video, output_path=output_path_deepSort,
+                         result_output=results_output_filename,
+                         tracking_ground_truth=tracking_ground_truth, mot_results=mot_results, datasetType=datasetType,
+                         includeROI=False)
+    deep_sort.track_vehicles(visible=False, mot_challenge=True, write_video=True, datasetType=datasetType)
+    """
 
     """
         Metacentrum configuration - AICITY Challenge
     """
-    """
+
     wandb.init(project="TRACKING_deepSORT", entity="krausm00")
     # Load the pretrained YOLOv8 model
-    model = YOLO("../../data/custom_vehicles.pt")
+    model = YOLO("../data/custom_vehicles.pt")
     # Define the input video
-    input_video = "../AICITY/data/vdo.avi"
+    input_video = "../AICITY/data/AI_CITY_video.mp4"
     # Define the path for the resulting video with tracking
-    output_path_deepSort = "../AICITY/video/final_trackings.mp4"
+    output_path_deepSort = "../AICITY/video/AI_CITY_final_trackings.mp4"
     # Define the tracking results path
-    results_output_filename = "../AICITY/results/tracking_results.txt"
+    results_output_filename = "../AICITY/results/AI_CITY_tracking_results.txt"
     # Define a path for MOT results
     mot_results = "../AICITY/results/aicity_results.txt"
     # Tracking ground truths
@@ -266,9 +282,9 @@ def main():
 
     deep_sort = deepSort(model, input_video=input_video, output_path=output_path_deepSort,
                          result_output=results_output_filename,
-                         tracking_ground_truth=tracking_ground_truth, mot_results=mot_results, datasetType=datasetType)
-    deep_sort.track_vehicles(visible=False, mot_challenge=True, write_video=True)
-    """
+                         tracking_ground_truth=tracking_ground_truth, mot_results=mot_results, datasetType=datasetType,
+                         includeROI=True)
+    deep_sort.track_vehicles(visible=False, mot_challenge=True, write_video=True, datasetType=datasetType)
 
 
 # Run the script

@@ -20,7 +20,7 @@ out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
 # Where to crop the video
 start_time = 60
-end_time = 120
+end_time = 62
 start_frame = int(start_time * fps)
 end_frame = int(end_time * fps)
 
