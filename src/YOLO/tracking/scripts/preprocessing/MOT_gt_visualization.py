@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import pandas as pd
 import cv2
 
@@ -7,7 +8,7 @@ the annotations in the provided video.
 """
 
 
-def showAnnotations(gt_file, video_path, output_video_path, datasetType: str):
+def showAnnotations(gt_file, video_path, output_video_path, datasetType: str, imageVisualization: bool):
     # Load the ground-truth data
     vehicle_gt_df = None
     if datasetType.startswith("MOT"):
@@ -62,6 +63,14 @@ def showAnnotations(gt_file, video_path, output_video_path, datasetType: str):
 
         # Write the frame to output video
         out.write(frame)
+        if imageVisualization:
+            if frame_number == 600:
+                plt.figure()
+                image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                plt.imshow(image_rgb)
+                plt.axis("off")
+                plt.savefig("/Users/martinkraus/Downloads/my_plot.pdf", bbox_inches='tight', pad_inches=0)
+                plt.show()
 
     cap.release()
     out.release()
@@ -74,10 +83,10 @@ def main():
     """
     MOT Challenge dataset
     """
-    datasetType = "AI CITY"  # AI CITY || MOT
+    datasetType = "MOT"  # AI CITY || MOT
     if datasetType.startswith("MOT"):
         gt_file = "/Users/martinkraus/Downloads/MOT17Det/train/MOT17-13/gt/gt.txt"
-        video_path = "/Users/martinkraus/Library/CloudStorage/OneDrive-ZápadočeskáuniverzitavPlzni/Dokumenty/škola/DP/YOLO/scripts/MOT_video/output_video.mp4"
+        video_path = "/Users/martinkraus/Library/CloudStorage/OneDrive-ZápadočeskáuniverzitavPlzni/Dokumenty/škola/DP/YOLO/scripts/MOT video/moving_vehicles.mp4"
         output_video_path = "/Users/martinkraus/Downloads/test.mp4"
 
     elif datasetType.startswith("AI CITY"):
@@ -85,7 +94,7 @@ def main():
         video_path = "/Users/martinkraus/Library/CloudStorage/OneDrive-ZápadočeskáuniverzitavPlzni/Dokumenty/škola/DP/YOLO/scripts/AI CITY video/AI_CITY_video.mp4"
         output_video_path = "/Users/martinkraus/Downloads/test.mp4"
 
-    showAnnotations(gt_file, video_path, output_video_path, datasetType)
+    showAnnotations(gt_file, video_path, output_video_path, datasetType, imageVisualization=True)
 
 
 if __name__ == "__main__":

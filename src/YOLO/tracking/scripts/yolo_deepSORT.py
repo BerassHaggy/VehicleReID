@@ -122,42 +122,21 @@ class deepSort:
 
                 # Draw results only for cars and trucks
                 if class_id == 0 or class_id == 2:
-                    # Check for ROI visualization
-                    if self.visualizeROI:
-                        x_min, y_max, x_max, y_min = self.ROI
-                        if x1 >= x_min and x2 <= x_max and y1 >= y_min and y2 <= y_max:
-                            if track_id not in self.color_map:
-                                self.color_map[track_id] = self.get_random_color()
-                            color = self.color_map[track_id]  # Get the assigned color
+                    # Draw the results
+                    if track_id not in self.color_map:
+                        self.color_map[track_id] = self.get_random_color()
+                    color = self.color_map[track_id]  # Get the assigned color
 
-                            cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
-                            cv2.putText(frame, f'ID: {track_id}', (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX,
-                                        0.5, color, 2)
-                            cv2.putText(frame, f'Class: {self.model.names[class_id]}', (int(x1), int(y1) - 25),
-                                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-                            try:
-                                cv2.putText(frame, f'Conf: {confidence:.2f}', (int(x1), int(y1) - 40),
-                                            cv2.FONT_HERSHEY_SIMPLEX,
-                                            0.5, color, 2)
-                                print("Frame number: " + frame_number + " is being processed.")
-                            except:
-                                pass
-                    else:
-                        # Draw the results
-                        if track_id not in self.color_map:
-                            self.color_map[track_id] = self.get_random_color()
-                        color = self.color_map[track_id]  # Get the assigned color
-
-                        cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
-                        cv2.putText(frame, f'ID: {track_id}', (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-                        cv2.putText(frame, f'Class: {self.model.names[class_id]}', (int(x1), int(y1) - 25),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-                        try:
-                            cv2.putText(frame, f'Conf: {confidence:.2f}', (int(x1), int(y1) - 40), cv2.FONT_HERSHEY_SIMPLEX,
-                                        0.5, color, 2)
-                            print("Frame number: " + frame_number + " is being processed.")
-                        except:
-                            pass
+                    cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
+                    cv2.putText(frame, f'ID: {track_id}', (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                    cv2.putText(frame, f'Class: {self.model.names[class_id]}', (int(x1), int(y1) - 25),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                    try:
+                        cv2.putText(frame, f'Conf: {confidence:.2f}', (int(x1), int(y1) - 40), cv2.FONT_HERSHEY_SIMPLEX,
+                                    0.5, color, 2)
+                        print("Frame number: " + frame_number + " is being processed.")
+                    except:
+                        pass
 
                 # Decide whether to display the annotated frame
                 if visible:
