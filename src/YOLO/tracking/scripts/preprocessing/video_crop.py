@@ -6,8 +6,14 @@ and endTime.
 """
 
 # Input and output video file paths
-input_path = "/Users/martinkraus/Downloads/AICity22_Track1_MTMC_Tracking/train/S01/c001/vdo.avi"
-output_path = "/Users/martinkraus/Downloads/out.mp4"
+datasetType = "MOT" # AI CITy
+if datasetType.startswith("MOT"):
+    input_path = "/Users/martinkraus/Library/CloudStorage/OneDrive-ZápadočeskáuniverzitavPlzni/Dokumenty/škola/DP/YOLO/scripts/MOT video/moving_vehicles.mp4"
+    output_path = "/Users/martinkraus/Downloads/MOT_short.mp4"
+else:
+    input_path = "/Users/martinkraus/Downloads/AICity22_Track1_MTMC_Tracking/train/S01/c001/vdo.avi"
+    output_path = "/Users/martinkraus/Downloads/out.mp4"
+
 
 cap = cv2.VideoCapture(input_path)
 fps = int(cap.get(cv2.CAP_PROP_FPS))
@@ -19,8 +25,8 @@ height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
 # Where to crop the video
-start_time = 60
-end_time = 62
+start_time = 0
+end_time = 2
 start_frame = int(start_time * fps)
 end_frame = int(end_time * fps)
 

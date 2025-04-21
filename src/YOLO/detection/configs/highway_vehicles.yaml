@@ -1,0 +1,6 @@
+train: /storage/plzen1/home/krausm00/DP/datasets/highway_vehicles/train/images
+val: /storage/plzen1/home/krausm00/DP/datasets/highway_vehicles/valid/images
+test: /storage/plzen1/home/krausm00/DP/datasets/highway_vehicles/test/images
+
+nc: 12
+names: ['big bus', 'big truck', 'bus-l-', 'bus-s-', 'car', 'mid truck', 'small bus', 'small truck', 'truck-l-', 'truck-m-', 'truck-s-', 'truck-xl-']

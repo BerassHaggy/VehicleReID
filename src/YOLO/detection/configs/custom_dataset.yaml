@@ -1,0 +1,6 @@
+train: /storage/plzen1/home/krausm00/DP/datasets/custom_vehicles/train/images
+val: /storage/plzen1/home/krausm00/DP/datasets/custom_vehicles/valid/images
+test: /storage/plzen1/home/krausm00/DP/datasets/custom_vehicles/test/images
+
+nc: 5
+names: ['Car', 'Motorcycle', 'Truck', 'Bus', 'Bicycle']

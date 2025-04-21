@@ -94,7 +94,7 @@ def frameFromTrackings(video_path):
 
         frame_number += 1
 
-        if frame_number == 370:
+        if frame_number == 369:
             image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             fig = plt.figure(figsize=(image_rgb.shape[1]/100, image_rgb.shape[0]/100), dpi=100)
             plt.imshow(image_rgb)

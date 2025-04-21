@@ -10,18 +10,20 @@ import os
 # Path to the directory containing frames
 source_directory = '/Users/martinkraus/Downloads/MOT17Det/train/MOT17-13'
 frames_directory = source_directory + "/img1"
+frames_directory = "/Users/martinkraus/Downloads/coco/images"
 config = source_directory + "/seqinfo.ini"
 
 # Read the config to get the frame rate
 configParser = configparser.ConfigParser()
-configParser.read(config)
-frame_rate = int(configParser['Sequence']['frameRate'])
+# configParser.read(config)
+# frame_rate = int(configParser['Sequence']['frameRate'])
+frame_rate = 10
 
 # Get the list of frame filenames
 frame_files = sorted(os.listdir(frames_directory))
 
 # Specify the video file name and codec
-video_filename = 'output_video.mp4'
+video_filename = 'pilsen_video.mp4'
 fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # You can try other codecs like 'XVID' or 'MJPG'
 
 # Set the frame size based on the first frame

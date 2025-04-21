@@ -171,7 +171,7 @@ class deepSort:
 
         # Process the traffic statistics
         # trafficStatistics.displayStatistics()
-        # trafficStatistics.processOccuranceDuration()
+        trafficStatistics.processOccuranceDuration()
 
         # After processing the video, calculate the MOTA metric
         motaEvaluator = mt.MOTEvaluator(ground_truth_labels=self.tracking_ground_truth,
@@ -240,7 +240,7 @@ def main():
     """
         Metacentrum configuration - MOT Challenge
     """
-    """
+
     wandb.init(project="TRACKING_deepSORT", entity="krausm00")
     # Load the pretrained YOLOv8 model
     model = YOLO("../data/custom_vehicles.pt")
@@ -261,12 +261,12 @@ def main():
                          tracking_ground_truth=tracking_ground_truth, mot_results=mot_results, datasetType=datasetType,
                          includeROI=False, visualizeROI=False)
     deep_sort.track_vehicles(visible=False, mot_challenge=True, write_video=True, datasetType=datasetType)
-    """
+
 
     """
         Metacentrum configuration - AICITY Challenge
     """
-
+    """
     wandb.init(project="TRACKING_deepSORT", entity="krausm00")
     # Load the pretrained YOLOv8 model
     model = YOLO("../data/custom_vehicles.pt")
@@ -281,12 +281,12 @@ def main():
     # Tracking ground truths
     tracking_ground_truth = "../AICITY/ground_truths/gt_short.txt"
     datasetType = "AI CITY"
-
+    """
     deep_sort = deepSort(model, input_video=input_video, output_path=output_path_deepSort,
                          result_output=results_output_filename,
                          tracking_ground_truth=tracking_ground_truth, mot_results=mot_results, datasetType=datasetType,
                          includeROI=True, visualizeROI=True)
-    deep_sort.track_vehicles(visible=False, mot_challenge=True, write_video=True, datasetType=datasetType)
+    deep_sort.track_vehicles(visible=False, mot_challenge=True, write_video=False, datasetType=datasetType)
 
 
 # Run the script

@@ -1,7 +1,6 @@
 from collections import defaultdict
 import matplotlib.pyplot as plt
 import pandas as pd
-import os
 
 """
 This class computes and stores from a video the following metrics:
@@ -109,7 +108,5 @@ class TrafficStatistics:
 
         # Convert to DataFrame
         df_durations = pd.DataFrame(duration_data)
-        # Check for the results file
-        fileName = "../results/traffic_statistics.csv"
-        df_durations.to_csv(fileName)
+        df_durations.to_csv("MOT_challenge/occurance_duration.csv")
         print(df_durations.head())
