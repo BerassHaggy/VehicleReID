@@ -13,7 +13,7 @@ This script represents a Faster-RCNN prediction on a provided image.
 cfg = get_cfg()
 cfg.merge_from_file(model_zoo.get_config_file("COCO-Detection/faster_rcnn_R_101_FPN_3x.yaml"))
 cfg.MODEL.WEIGHTS = "best_model.pth"
-datasetType = "HV"  # CD or HV
+datasetType = "CD"  # CD or HV
 if datasetType.startswith("CD"):
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 5
     image_path = "CD_val_img.png"
@@ -44,6 +44,7 @@ elif datasetType.startswith("HV"):
         11: 'truck-xl-'
     }
 cfg.MODEL.DEVICE = "cuda"
+cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.25  # YOLO uses 0.25 based on the documentation: https://docs.ultralytics.com/modes/predict/#inference-arguments
 classes = list(label_map.keys())
 
 """

@@ -5,7 +5,7 @@ import wandb
 wandb.login()
 wandb.init()
 # Artifact reference
-artifact = wandb.use_artifact("krausm00/HIGHWAY_VEHICLES/best_model:v5", type="model")
+artifact = wandb.use_artifact("krausm00/HIGHWAY_VEHICLES/best_model:v7", type="model")
 
 # Download to current directory
 artifact_dir = artifact.download(root=".")

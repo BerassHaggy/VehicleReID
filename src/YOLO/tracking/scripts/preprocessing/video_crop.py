@@ -6,14 +6,16 @@ and endTime.
 """
 
 # Input and output video file paths
-datasetType = "MOT" # AI CITy
+datasetType = "Pilsen"  # AI CITY || MOT || Pilsen
 if datasetType.startswith("MOT"):
     input_path = "/Users/martinkraus/Library/CloudStorage/OneDrive-ZápadočeskáuniverzitavPlzni/Dokumenty/škola/DP/YOLO/scripts/MOT video/moving_vehicles.mp4"
     output_path = "/Users/martinkraus/Downloads/MOT_short.mp4"
-else:
+elif datasetType.startswith("AI"):
     input_path = "/Users/martinkraus/Downloads/AICity22_Track1_MTMC_Tracking/train/S01/c001/vdo.avi"
     output_path = "/Users/martinkraus/Downloads/out.mp4"
-
+else:
+    input_path = "/Users/martinkraus/GIT/VehicleReID/src/YOLO/tracking/scripts/preprocessing/pilsen_video.mp4"
+    output_path = "/Users/martinkraus/Downloads/pilsen_short.mp4"
 
 cap = cv2.VideoCapture(input_path)
 fps = int(cap.get(cv2.CAP_PROP_FPS))
@@ -26,7 +28,7 @@ out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
 # Where to crop the video
 start_time = 0
-end_time = 2
+end_time = 60
 start_frame = int(start_time * fps)
 end_frame = int(end_time * fps)
 
