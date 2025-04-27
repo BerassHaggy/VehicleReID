@@ -35,7 +35,7 @@ class deepSort:
 
     def track_vehicles(self, visible: bool, mot_challenge: bool, write_video: bool, datasetType: str):
         # Hyperparameters based on a wandb sweep
-        if datasetType.startswith("AI CITY"):
+        if datasetType.startswith("AI CITY") or datasetType.startswith("Pilsen"):
             tracker = DeepSort(
                 max_age=32,
                 n_init=5,
@@ -171,7 +171,7 @@ class deepSort:
 
         # Process the traffic statistics
         # trafficStatistics.displayStatistics()
-        trafficStatistics.processOccuranceDuration()
+        # trafficStatistics.processOccuranceDuration()
 
         # After processing the video, calculate the MOTA metric
         motaEvaluator = mt.MOTEvaluator(ground_truth_labels=self.tracking_ground_truth,
@@ -241,6 +241,7 @@ def main():
         Metacentrum configuration - MOT Challenge
     """
 
+    """
     wandb.init(project="TRACKING_deepSORT", entity="krausm00")
     # Load the pretrained YOLOv8 model
     model = YOLO("../data/custom_vehicles.pt")
@@ -261,8 +262,7 @@ def main():
                          tracking_ground_truth=tracking_ground_truth, mot_results=mot_results, datasetType=datasetType,
                          includeROI=False, visualizeROI=False)
     deep_sort.track_vehicles(visible=False, mot_challenge=True, write_video=True, datasetType=datasetType)
-
-
+    """
     """
         Metacentrum configuration - AICITY Challenge
     """
@@ -282,10 +282,29 @@ def main():
     tracking_ground_truth = "../AICITY/ground_truths/gt_short.txt"
     datasetType = "AI CITY"
     """
+
+    """
+            Metacentrum configuration - Pilsen dataset
+        """
+
+    wandb.init(project="TRACKING_deepSORT", entity="krausm00")
+    # Load the pretrained YOLOv8 model
+    model = YOLO("../data/custom_vehicles.pt")
+    # Define the input video
+    input_video = "../PILSEN/data/pilsen_short.mp4"
+    # Define the path for the resulting video with tracking
+    output_path_deepSort = "../PILSEN/video/pilsen_final_trackings.mp4"
+    # Define the tracking results path
+    results_output_filename = "../PILSEN/results/pilsen_tracking_results.txt"
+    # Define a path for MOT results
+    mot_results = "../PILSEN/results/pilsen_results.txt"
+    # Tracking ground truths
+    tracking_ground_truth = "../PILSEN/ground_truths/pilsen_gt.txt"
+    datasetType = "Pilsen"
     deep_sort = deepSort(model, input_video=input_video, output_path=output_path_deepSort,
                          result_output=results_output_filename,
                          tracking_ground_truth=tracking_ground_truth, mot_results=mot_results, datasetType=datasetType,
-                         includeROI=True, visualizeROI=True)
+                         includeROI=False, visualizeROI=False)
     deep_sort.track_vehicles(visible=False, mot_challenge=True, write_video=False, datasetType=datasetType)
 
 

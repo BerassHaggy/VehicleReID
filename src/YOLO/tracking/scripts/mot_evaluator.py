@@ -14,6 +14,7 @@ class MOTEvaluator:
         self.predictions = predictions_filename
         self.results_filename = results_filename
         self.cars_id = 0  # Check whether the carID is correct (MOT Challenge - classID for vehicles == 3)
+        self.truck_id = 0  # Check for the truck IDs
         self.ROI = MOTEvaluator.ROI  # Region of Interest
 
     # Check whether the current bbox is within the defined ROI
@@ -56,6 +57,21 @@ class MOTEvaluator:
             confidence_threshold = 0.8
             self.cars_id = 3
 
+        elif datasetType.startswith("Pilsen"):
+            # Ground truth
+            ground_truth = pd.read_csv(
+                self.ground_truth_labels,
+                sep=' ',
+                header=None,
+                names=[
+                    'frame', 'class_id', 'bbox_left', 'bbox_top',
+                    'bbox_width', 'bbox_height', 'object_id'
+                ]
+            )
+            # Set the confidence threshold
+            confidence_threshold = 0.8
+            self.cars_id = 0
+            self.truck_id = 5
         # Predictions
         predictions = pd.read_csv(
             self.predictions,
@@ -67,7 +83,7 @@ class MOTEvaluator:
             ]
         )
         # Filter the car + truck category if necessary
-        ground_truth_cars = ground_truth[ground_truth['class_id'] == self.cars_id]
+        ground_truth_cars = ground_truth[(ground_truth['class_id'] == self.cars_id) | (ground_truth['class_id'] == self.truck_id)]
         predictions_cars = predictions[(predictions['class_id'] == 0) | (predictions['class_id'] == 2)]
         predictions_cars = predictions_cars[predictions_cars['confidence'] >= confidence_threshold]
 
@@ -93,7 +109,10 @@ class MOTEvaluator:
             pred_bboxes = pred_frame['BBox'].tolist()
 
             # Convert bounding boxes to [x1, y1, x2, y2] format
-            gt_bboxes_xyxy = [self.bbox_to_xyxy(bbox) for bbox in gt_bboxes]
+            if datasetType.startswith("Pilsen"):
+                gt_bboxes_xyxy = [self.yolo_to_pixel(bbox) for bbox in gt_bboxes]
+            else:
+                gt_bboxes_xyxy = [self.bbox_to_xyxy(bbox) for bbox in gt_bboxes]
             pred_bboxes_xyxy = [self.bbox_to_xyxy(bbox) for bbox in pred_bboxes]
             distances = None
 
@@ -156,8 +175,34 @@ class MOTEvaluator:
 
     @staticmethod
     def bbox_to_xyxy(bbox):
-        # Convert [x, y, w, h] to [x1, y1, x2, y2]
+        """
+        Converts [x, y, w, h] to [x1, y1, x2, y2]
+        :param bbox:
+        :return:
+        """
         x1, y1, w, h = bbox
         x2 = x1 + w
         y2 = y1 + h
+        return [x1, y1, x2, y2]
+
+    @staticmethod
+    def yolo_to_pixel(bbox):
+        """
+        Converts the YOLO annotations into pixel space for MOT stats
+        :param bbox: YOLO bbox
+        :return:
+        """
+        x_center, y_center, width, height = bbox
+        image_width = 730
+        image_height = 548
+        box_width = width * image_width
+        box_height = height * image_height
+        x_center_pixel = x_center * image_width
+        y_center_pixel = y_center * image_height
+
+        x1 = int(x_center_pixel - box_width / 2)
+        y1 = int(y_center_pixel - box_height / 2)
+        x2 = int(x_center_pixel + box_width / 2)
+        y2 = int(y_center_pixel + box_height / 2)
+
         return [x1, y1, x2, y2]
