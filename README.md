@@ -23,4 +23,3 @@ git clone https://github.com/BerassHaggy/VehicleReID.git
 cd VehicleReID
 pip3 install -r requirements.txt
 ```
-## Future Work
