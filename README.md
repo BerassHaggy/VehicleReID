@@ -13,7 +13,7 @@ Various approaches are explored, and the performance of each method is evaluated
 Using Wandb ([Weights & Biases](https://wandb.ai/site/)) a thorough evaluation of different techniques is provided, along with metrics demonstrating the effectiveness of the best-performing algorithm.
 Use this [link](https://wandb.ai/krausm00/VehicleReID/reports/Vehicle-Re-Identification--VmlldzoxMjI1NTc0NQ) to see the report. 
 
-Along with this repository, an interactive demo is available on [HuggingFace spaces](https://huggingface.co/spaces/Haggykuki/VehicleReID) allowing users to view the tracking results without any installation.
+Along with this repository, an interactive demo is available on [HuggingFace spaces](https://api.wandb.ai/links/krausm00/zcq7i8gk) allowing users to view the tracking results without any installation.
 
 
 ## Usage
